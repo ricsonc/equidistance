@@ -26,67 +26,52 @@ def makebodies(n):
         b.append(Point(x, m[2*x], m[2*x+1], 0))
     return b
 
+def makebodies2(n):
+    pass
+
 def randvec(d):
     r = random()*d
     angle = random()*2*pi
     return r*cos(angle)+r*sin(angle)*1j
 
 def make_potfn(ratio, mind, maxd, c1, c2):
-    def pot(xs):
-        score = 0
-        for obj in xs:
-            o1 = xs[obj.n1]
-            o2 = xs[obj.n2]
-            d1 = abs(obj.p-o1.p)
-            d2 = abs(obj.p-o2.p)
-            r = max(d1,d2)/min(d1,d2)
-            d1 = max(d1/maxd,mind/d1)
-            d2 = max(d2/maxd,mind/d2)
-            ratio_p = (r-ratio)**2
-            dist_p = d1**2+d2**2
-            cost = c1*dist_p+c2*ratio_p
-            score += cost
-        return score
-    return pot
-
-def make_potfn2(ratio, mind, maxd, c1, c2):
-    def pot(xs):
-        score = 0
-        for obj in xs:
-            o1 = xs[obj.n1]
-            o2 = xs[obj.n2]
-            d1 = abs(obj.p-o1.p)
-            d2 = abs(obj.p-o2.p)
-            r = max(d1,d2)/min(d1,d2)
-            d1 = max(d1/maxd,mind/d1)
-            d2 = max(d2/maxd,mind/d2)
-            ratio_p = (r-ratio)**2
-            dist_p = d1**2+d2**2
-            cost = c1*dist_p+c2*ratio_p
-            score += cost
-        return score
+    def pot(xs, obj):
+        o1 = xs[obj.n1]
+        o2 = xs[obj.n2]
+        d1 = abs(obj.p-o1.p)
+        d2 = abs(obj.p-o2.p)
+        r = max(d1,d2)/min(d1,d2)
+        dist_p = 0
+        for obj2 in xs:
+            if (obj.x == obj2.x):
+                continue
+            d = abs(obj2.p-obj.p)
+            dist_p += max(1,max(d/maxd,mind/d))**2
+        ratio_p = (r-ratio)**2
+        return c1*dist_p+c2*ratio_p
     return pot
 
 class Eqsystem:
-    def __init__(self, n, ratio = 1.1, mind = 1., maxd = 10.,
-                 c1 = 1, c2 = 1, p = 10, d = 0.1, s = 4.):
+    def __init__(self, n, ratio = 0.0, mind = .001, maxd = 16.,
+                 c1 = 5, c2 = 1, p = 10, d = 0.1, s = 4.):
         self.bodies = makebodies(n)
         for body in self.bodies:
             body.p = uniform(-s,s)+uniform(-s,s)*1j
-        self.pot_fn = make_potfn(ratio, mind, maxd, c1, c2)
+        self.pot_fn = make_potfn(ratio, mind, maxd, c1, c2/n)
         self.p = p
         self.d = d
         self.s = s
         self.iter = 0
+        plt.cla()
     def cost(self):
-        return self.pot_fn(self.bodies)
+        return sum((self.pot_fn(self.bodies, b) for b in self.bodies))
     def updatebody(self,body):
-        score = self.cost()
+        score = self.cost()-.001
         body.np = body.p
         best = body.p
         for x in xrange(self.p):
             body.p = body.np+randvec(self.d)
-            nscore = self.cost()
+            nscore = self.pot_fn(self.bodies,body)
             if nscore < score:
                 score = nscore
                 best = body.p
@@ -103,7 +88,7 @@ class Eqsystem:
         i = 0
         while 1:
             self.update()
-            print i, self.cost()
+            print i, #self.cost()
             self.plot()
             i+=1
     def plot(self):
@@ -116,4 +101,4 @@ class Eqsystem:
         plt.savefig(str(self.iter)+"test.png", bbox_inches='tight')
         plt.cla()
 
-W = Eqsystem(100)
+W = Eqsystem(50)
