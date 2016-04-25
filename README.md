@@ -2,6 +2,10 @@
 
 ====
 
+Video : https://dl.dropboxusercontent.com/u/42218552/equidistance.mp4
+
+====
+
 This is a simulation of a complex system. 
 
 Consider n points on a two dimensional plane. Each point is assigned to two targets and must attempt to stay equidistant to both targets. At every timestep, it moves to achieve this goal. In addition, this simulation also adds two constraints the points to prevent them from moving two close to each other and from moving two far from the origin. 
